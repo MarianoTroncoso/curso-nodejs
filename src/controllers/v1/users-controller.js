@@ -1,6 +1,32 @@
 const bcrypt = require('bcrypt');
 const Users = require('../../mongo/models/users');
 
+// segurirdad
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await Users.findOne({ email });
+    if (user) {
+      //comprobar contraseña
+      const isOk = await bcrypt.compare(password, user.password);
+      console.log(isOk);
+      if (isOk) {
+        res.send({ status: 'OK', data: {} });
+      } else {
+        // 403 = contraseña incorrecta, creo
+        res.status(403).send({ status: 'INVALID PASSWORD', message: '' });
+      }
+    } else {
+      // no match
+      // 204 = petición se realizo de manera correcta pero no encontró ningun dato
+      // respuesta de status code 204 es algo vacio, por eso le paso 401
+      res.status(401).send({ status: 'USER_NOT_FOUND', message: '' });
+    }
+  } catch (error) {
+    res.status(500).send({ status: 'ERROR', message: error.message });
+  }
+};
+
 const createUser = async (req, res) => {
   try {
     // obtengo la data
@@ -28,7 +54,7 @@ const createUser = async (req, res) => {
 
     await user.save();
 
-    res.send({ status: 'OK', messaege: 'User created' });
+    res.send({ status: 'OK', message: 'User created' });
   } catch (error) {
     if (error.code && error.code === 11000) {
       res
@@ -53,9 +79,9 @@ const updateUser = async (req, res) => {
     await Users.findByIdAndUpdate(userId, {
       username,
       email,
-      data
+      data,
     });
-    res.send({ status: 'OK', messaege: 'user updated' });
+    res.send({ status: 'OK', message: 'user updated' });
   } catch (error) {
     // console.log(error);
     if (error.code && error.code === 11000) {
@@ -74,4 +100,5 @@ module.exports = {
   deleteUser,
   getUsers,
   updateUser,
+  login,
 };
