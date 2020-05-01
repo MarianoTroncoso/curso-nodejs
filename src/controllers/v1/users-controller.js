@@ -3,7 +3,6 @@ const Users = require('../../mongo/models/users');
 
 const createUser = async (req, res) => {
   try {
-
     // obtengo la data
     const { username, email, password, data } = req.body;
 
@@ -34,13 +33,13 @@ const createUser = async (req, res) => {
     if (error.code && error.code === 11000) {
       res
         .status(400)
-        .send({ status: 'DUPLICATED_VALUES', messaege: error.keyValye });
+        .send({ status: 'DUPLICATED_VALUES', message: error.keyValye });
       // para terminar la ejecucion y no envia respuesta al cliente
       return;
     }
     // console.log('error createuser', error);
     // como no tengo forma de idetificar el tipo de error, status(500)
-    res.status(500).send({ status: 'ERROR', messaege: error.message });
+    res.status(500).send({ status: 'ERROR', message: error.message });
   }
 };
 
@@ -48,7 +47,27 @@ const deleteUser = (req, res) => {};
 
 const getUsers = (req, res) => {};
 
-const updateUser = (req, res) => {};
+const updateUser = async (req, res) => {
+  try {
+    const { username, email, data, userId } = req.body;
+    await Users.findByIdAndUpdate(userId, {
+      username,
+      email,
+      data
+    });
+    res.send({ status: 'OK', messaege: 'user updated' });
+  } catch (error) {
+    // console.log(error);
+    if (error.code && error.code === 11000) {
+      res
+        .status(400)
+        .send({ status: 'DUPLICATED_VALUES', message: error.keyValue });
+      // para terminar la ejecucion y no envia respuesta al cliente
+      return;
+    }
+    res.status(500).send({ status: 'ERROR', message: 'user updated' });
+  }
+};
 
 module.exports = {
   createUser,

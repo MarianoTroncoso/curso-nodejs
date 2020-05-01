@@ -18,11 +18,23 @@ const createProduct = async (req, res) => {
   }
 };
 
-const deleteProduct = (req, res) => {};
-
 const getsProducts = async (req, res) => {
   try {
-    const products = await Products.find().select('title desc price').populate('user', 'username email data rol');
+    const products = await Products.find()
+      .select('title desc price')
+      .populate('user', 'username email data rol');
+    res.send({ status: 'OK', data: products });
+  } catch (error) {
+    console.log('getProducts error', error);
+    res.status(500).send({ status: 'ERROR', data: error.message });
+  }
+};
+
+const getProductsByUser = async (req, res) => {
+  try {
+    const products = await Products.find({
+      user: req.params.userId,
+    });
     res.send({ status: 'OK', data: products });
   } catch (error) {
     console.log('getProducts error', error);
@@ -32,6 +44,6 @@ const getsProducts = async (req, res) => {
 
 module.exports = {
   createProduct,
-  deleteProduct,
   getsProducts,
+  getProductsByUser,
 };
