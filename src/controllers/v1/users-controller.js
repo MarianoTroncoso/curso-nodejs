@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Users = require('../../mongo/models/users');
+const Products = require('../../mongo/models/products');
 
 // tiempo de expiración
 // 10 minutos
@@ -17,8 +18,9 @@ const login = async (req, res) => {
       if (isOk) {
         // generar token que almacena id y rol
         // como 2do parametro le pasamos la llave secreta, la cual guardamos en las variables de entorno
+        // firma
         const token = jwt.sign(
-          { userid: user._id, role: user.role },
+          { userId: user._id, role: user.role },
           process.env.JWT_SECRET,
           { expiresIn }
         );
@@ -26,7 +28,7 @@ const login = async (req, res) => {
           status: 'OK',
           data: {
             token,
-            expiresIn
+            expiresIn,
           },
         });
       } else {
@@ -51,22 +53,10 @@ const createUser = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 15);
 
-    // console.log(' FIN ', hash);
-
-    // UNA FORMA DE GUARDAR DATOS EN MONGO DB
-    // si el nombre de la variable con la cual asignas es el mismo que el nombre en la tabla, pones una sola vez
-    // await Users.create({
-    //   username,
-    //   email,
-    //   data,
-    //   password: hash,
-    // });
-
-    // OTRA FORMA DE GUARDAR DATOS EN MONGO DB
     const user = new Users();
     user.username = username;
     user.email = email;
-    user.password = password;
+    user.password = hash;
     user.data = data;
 
     await user.save();
@@ -86,14 +76,39 @@ const createUser = async (req, res) => {
   }
 };
 
-const deleteUser = (req, res) => {};
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    // console.log('userId', userId);
 
-const getUsers = (req, res) => {};
+    if (!userId) {
+      throw new Error('missing param userId');
+    }
+
+    await Users.findByIdAndDelete(userId);
+
+    // eliminar los productos asociados a un cliente
+    await Products.deleteMany({ user: userId });
+    res.send({ status: 'OK', message: 'user deleted' });
+  } catch (error) {
+    res.status(500).send({ status: 'ERROR', message: error.message });
+  }
+};
+
+const getUsers = async (req, res) => {
+  try {
+    const users = await Users.find().select({ password: 0, __v: 0, role: 0 });
+    res.send({ status: 'OK', data: users });
+  } catch (error) {
+    res.status(500).send({ status: 'ERROR', message: error.message });
+  }
+};
 
 const updateUser = async (req, res) => {
   try {
-    const { username, email, data, userId } = req.body;
-    await Users.findByIdAndUpdate(userId, {
+    console.log('req.sessionData', req.sessionData.userId);
+    const { username, email, data } = req.body;
+    await Users.findByIdAndUpdate(req.sessionData.userId, {
       username,
       email,
       data,
