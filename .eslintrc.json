@@ -17,6 +17,7 @@
     "rules": {
         "arrow-parens":"off",
         "comma-dangle": "off",
-        "spaced-comment": "off"
+        "spaced-comment": "off",
+        "object-curly-newline": "off"
     }
 }

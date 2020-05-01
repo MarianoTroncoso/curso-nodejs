@@ -5,9 +5,9 @@ const { Schema } = mongoose;
 
 // definimos esquema para nuestros usuarios
 const usersSchema = new Schema({
-  username: { type: String, required: true },
+  username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  email: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
   data: {
     type: { age: Number, isMale: Boolean },
   },
@@ -15,5 +15,5 @@ const usersSchema = new Schema({
 });
 
 // creamos el modelo
-const model = mongoose.model('user', usersSchema);
+const model = mongoose.model('User', usersSchema);
 module.exports = model;

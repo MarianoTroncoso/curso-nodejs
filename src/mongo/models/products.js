@@ -9,6 +9,8 @@ const productsSchema = new Schema(
     title: { type: String, required: true },
     desc: { type: String, required: true },
     price: { type: Number, required: true },
+    images: { type: [{ type: String, required: true }], default: [] },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   },
   {
     timestamps: true,
@@ -19,5 +21,5 @@ const productsSchema = new Schema(
 // propiedad createdat, con la fecha de la ultima modificacion
 
 // creamos el modelo
-const model = mongoose.model('product', productsSchema);
+const model = mongoose.model('Product', productsSchema);
 module.exports = model;
